@@ -1,0 +1,11 @@
+[package]
+name = "rspdk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+spdk-sys = { path = "spdk-sys" }
+log = "0.4"
+futures-lite = "1.13"
+thiserror = "1.0"
+rand = "0.8"
