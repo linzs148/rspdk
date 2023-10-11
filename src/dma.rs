@@ -2,8 +2,8 @@ use spdk_sys::*;
 
 #[derive(Debug)]
 pub struct DmaBuf {
-    pub ptr: *mut u8,
-    pub len: usize,
+    ptr: *mut u8,
+    len: usize,
 }
 
 unsafe impl Send for DmaBuf {}
@@ -27,7 +27,11 @@ impl DmaBuf {
         }
     }
 
-    pub const fn as_ptr(&self) -> *const u8 {
+    pub fn as_ptr(&self) -> *const u8 {
+        self.ptr as _
+    }
+
+    pub fn as_mut_ptr(&self) -> *mut u8 {
         self.ptr as _
     }
 }
