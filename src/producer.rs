@@ -1,8 +1,8 @@
-use crate::{bdev::do_async, dma::DmaBuf, error::Result};
+use crate::{bdev::do_async, error::Result};
 use futures_lite::future::block_on;
 use std::{ffi::c_void, sync::mpsc::Sender};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Action {
     Read,
     Write,
@@ -13,7 +13,7 @@ pub struct Request {
     pub action: Action,
     pub offset: usize,
     pub length: usize,
-    pub buf: DmaBuf,
+    pub buf: *mut u8,
     pub arg: *mut c_void,
 }
 
@@ -24,17 +24,14 @@ impl Request {
         action: Action,
         offset: usize,
         length: usize,
-        buf: &mut [u8],
+        buf: *mut u8,
         arg: *mut c_void,
     ) -> Self {
         Request {
             action,
             offset,
             length,
-            buf: DmaBuf {
-                len: length,
-                ptr: buf.as_mut_ptr(),
-            },
+            buf,
             arg,
         }
     }
@@ -57,7 +54,7 @@ impl SpdkProducer {
         buf: &mut [u8],
     ) -> Result<()> {
         block_on(do_async(|arg| {
-            let request = Request::new(action, offset, length, buf, arg);
+            let request = Request::new(action, offset, length, buf.as_mut_ptr(), arg);
             let _ = self.tx.send(request);
         }))
     }

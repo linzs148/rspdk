@@ -6,9 +6,9 @@ in spdk directory
 ```shell
 cp dpdk/build/lib/*.a build/lib/
 
-cp isa-l/build/lib/*.a build/lib/
+cp isa-l/.libs/*.a build/lib/
 
-cp isa-l-crypto/build/lib/*.a build/lib/
+cp isa-l-crypto/.libs/*.a build/lib/
 
 cd build/lib/
 

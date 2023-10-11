@@ -55,6 +55,14 @@ impl SpdkConsumer {
     }
 }
 
+impl Drop for SpdkConsumer {
+    fn drop(&mut self) {
+        unsafe {
+            spdk_app_stop(0);
+        }
+    }
+}
+
 pub fn spawn<'a, F: Future + 'a>(future: F) -> JoinHandle<F> {
     spawn_internal(future, std::ptr::null_mut())
 }
@@ -125,10 +133,4 @@ unsafe fn poller_waker(poller: *mut spdk_poller) -> Waker {
         |_| {},                                              // drop
     );
     Waker::from_raw(RawWaker::new(poller as _, &VTABLE))
-}
-
-pub fn app_stop() {
-    unsafe {
-        spdk_app_stop(0);
-    }
 }

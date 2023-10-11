@@ -2,7 +2,8 @@ use rand::Rng;
 use rspdk::{
     bdev::BdevDesc,
     complete::LocalComplete,
-    consumer::{app_stop, SpdkConsumer},
+    consumer::SpdkConsumer,
+    dma::DmaBuf,
     error::Result,
     producer::{Action, Request, SpdkProducer},
 };
@@ -16,7 +17,7 @@ fn main() {
     let (tx, rx) = channel();
     thread::spawn(|| {
         SpdkConsumer::new()
-            .name("test")
+            .name("rspdk")
             .config_file(&args().nth(1).unwrap())
             .block_on(async_main(rx))
     });
@@ -37,25 +38,25 @@ fn main() {
 }
 
 async fn async_main(rx: Receiver<Request>) {
-    let bdev_desc = BdevDesc::create_desc("Malloc0").unwrap();
+    let bdev_desc = BdevDesc::create_desc("NVMe0n1").unwrap();
 
-    for mut request in rx {
-        let _ = match request.action {
+    for request in rx {
+        let dma_buf = DmaBuf::alloc(request.length, 0x1000);
+        match request.action {
             Action::Read => {
-                bdev_desc
-                    .read(request.offset, request.length, request.buf.as_mut())
-                    .await
+                let _ = bdev_desc
+                    .read(request.offset, request.length, dma_buf.as_mut_ptr())
+                    .await;
+                unsafe { std::ptr::copy(dma_buf.as_ptr(), request.buf, request.length) };
             }
             Action::Write => {
-                bdev_desc
-                    .write(request.offset, request.length, request.buf.as_ref())
-                    .await
+                unsafe { std::ptr::copy(request.buf, dma_buf.as_mut_ptr(), request.length) };
+                let _ = bdev_desc
+                    .write(request.offset, request.length, dma_buf.as_mut_ptr())
+                    .await;
             }
         };
         let complete = unsafe { &mut *(request.arg as *mut LocalComplete<Result<u64>>) };
         complete.complete(Ok(0));
     }
-
-    bdev_desc.close();
-    app_stop();
 }

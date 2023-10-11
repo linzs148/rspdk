@@ -62,13 +62,13 @@ impl BdevDesc {
         }
     }
 
-    pub async fn write(&self, offset: usize, length: usize, buf: &[u8]) -> Result<()> {
+    pub async fn write(&self, offset: usize, length: usize, buf: *mut u8) -> Result<()> {
         let channel = self.get_io_channel().unwrap();
         do_async(|arg| unsafe {
             spdk_bdev_write(
                 self.ptr,
                 channel.ptr,
-                buf.as_ptr() as _,
+                buf as _,
                 offset as u64,
                 length as u64,
                 Some(callback),
@@ -78,13 +78,13 @@ impl BdevDesc {
         .await
     }
 
-    pub async fn read(&self, offset: usize, length: usize, buf: &mut [u8]) -> Result<()> {
+    pub async fn read(&self, offset: usize, length: usize, buf: *mut u8) -> Result<()> {
         let channel = self.get_io_channel().unwrap();
         do_async(|arg| unsafe {
             spdk_bdev_read(
                 self.ptr,
                 channel.ptr,
-                buf.as_mut_ptr() as _,
+                buf as _,
                 offset as u64,
                 length as u64,
                 Some(callback),
@@ -92,6 +92,12 @@ impl BdevDesc {
             );
         })
         .await
+    }
+}
+
+impl Drop for BdevDesc {
+    fn drop(&mut self) {
+        self.close();
     }
 }
 
