@@ -1,0 +1,6 @@
+[submodule "spdk"]
+	path = spdk
+	url = git@github.com:linzs148/spdk.git
+[submodule "pelikan"]
+	path = pelikan
+	url = git@github.com:linzs148/pelikan.git
