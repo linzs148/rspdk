@@ -55,14 +55,6 @@ impl SpdkConsumer {
     }
 }
 
-impl Drop for SpdkConsumer {
-    fn drop(&mut self) {
-        unsafe {
-            spdk_app_stop(0);
-        }
-    }
-}
-
 pub fn spawn<'a, F: Future + 'a>(future: F) -> JoinHandle<F> {
     spawn_internal(future, std::ptr::null_mut())
 }
@@ -102,6 +94,7 @@ fn spawn_internal<F: Future>(future: F, output_ptr: *mut F::Output) -> JoinHandl
                     task.output_ptr.write(output);
                 }
                 spdk_poller_unregister(&mut task.poller);
+                std::thread::sleep(std::time::Duration::from_secs(1));
                 Rc::from_raw(cell_ptr);
             },
         }

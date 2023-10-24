@@ -25,8 +25,8 @@ fn main() {
     println!("cargo:rustc-link-lib=spdk_fat");
     println!("cargo:rustc-link-lib=stdc++");
     println!("cargo:rustc-link-lib=aio");
-    println!("cargo:rustc-link-lib=boringcrypto");
-    println!("cargo:rustc-link-lib=boringssl");
+    println!("cargo:rustc-link-lib=crypto");
+    println!("cargo:rustc-link-lib=ssl");
     println!("cargo:rustc-link-lib=numa");
     println!("cargo:rustc-link-lib=uuid");
     let spdk_include_path = env::var("SPDK_INCLUDE").unwrap_or("/usr/local/include".to_string());
